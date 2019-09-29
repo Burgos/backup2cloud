@@ -13,6 +13,7 @@ else()
     set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 endif()
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -O2")
 
 add_executable(backup2cloud src/backup2cloud.cpp)
 target_link_libraries(backup2cloud ${CONAN_LIBS})
