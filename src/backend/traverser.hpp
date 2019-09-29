@@ -30,4 +30,9 @@ std::vector<FileWithHash> calculateHashes (fs::recursive_directory_iterator it) 
     return results;
 }
 
+std::vector<FileWithHash> calculateHashes (std::string path) {
+    fs::path file_path{path};
+    return calculateHashes(fs::recursive_directory_iterator{file_path});
+}
+
 #endif // BACKUP2CLOUD_BACKEND_TRAVERSER_H
