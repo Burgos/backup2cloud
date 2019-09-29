@@ -56,4 +56,14 @@ void performBackup (const std::string& backup_name, std::vector<FileWithHash> fi
     }
 }
 
+bool checkPreviousBackup(const std::string& backup_name, SQLite::Database& db) {
+    SQLite::Statement query{db, "SELECT count(*) as num_matches FROM backup_files WHERE backup_name = :backup_name"};
+    query.bind(":backup_name", backup_name);
+    int num_matches = 0;
+    if (query.executeStep() == true) {
+        num_matches = query.getColumn("num_matches").getInt();
+    }
+    return num_matches > 0;
+}
+
 #endif
