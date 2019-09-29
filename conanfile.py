@@ -3,7 +3,8 @@ from conans import ConanFile, CMake
 class BackupConan(ConanFile):
     settings = ('os', 'compiler', 'build_type', 'arch')
     requires = (
-        'OpenSSL/1.0.2s@conan/stable'
+        'OpenSSL/1.0.2s@conan/stable',
+        'sqlitecpp/2.2.0@bincrafters/stable'
     )
     generators = 'cmake'
 
