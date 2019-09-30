@@ -20,11 +20,11 @@ int main(int argc, char** argv) {
     }
     std::string backup_name(argv[1]);
     const bool isFull = !checkPreviousBackup(backup_name, db);
-    createBackupDirectory(fs::path{"/Users/burgos/backup/"}, backup_name, isFull);
+    auto backup_dir = createBackupDirectory(fs::path{"/Users/burgos/backup/"}, backup_name, isFull);
     for (int i = 2; i < argc; i++) {
         auto files = listFilesForBackup(backup_name, argv[i], db);
-        performBackup(backup_name, files, db, [](const std::string& path) {
-            std::cout << "Backing up " << path << "\n";
+        performBackup(backup_name, files, db, [backup_dir, root = fs::path{argv[i]}](const std::string& path) {
+                backup_file(backup_dir, root, fs::path{path});
         });
     }
     return 0;
