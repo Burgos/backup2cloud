@@ -10,8 +10,6 @@
 #include <iterator>
 #include <iomanip>
 #include <functional>
-#include <openssl/md5.h>
-#include <zlib.h>
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -37,39 +35,6 @@ std::string toHexStr(It begin, It end) {
    std::copy(begin, end, std::ostream_iterator<FixedWidthVal<unsigned int, 2>>(result, ""));
    return result.str();
 }
-
-struct MD5_Context {
-    MD5_Context () {
-        MD5_Init (&context);
-    }
-    
-    void Update (std::string_view data) {
-        MD5_Update(&context, data.data(), data.size());
-    }
-
-    Hash GetFinalHash (){
-        std::vector<unsigned char> hash(MD5_DIGEST_LENGTH, static_cast<unsigned char>(0));
-        MD5_Final(hash.data(), &context);
-        return toHexStr(hash.begin(), hash.end());
-    }
-
-private:
-    MD5_CTX context;
-};
-
-struct CRC_Context {
-    void Update (std::string_view data) {
-        crc = crc32(crc, reinterpret_cast<const unsigned char*>(data.data()), data.size());
-    }
-
-    Hash GetFinalHash (){
-        std::vector<unsigned long> vec = {crc};
-        return toHexStr(vec.begin(), vec.end());
-    }
-
-private:
-    unsigned long crc;
-};
 
 struct FileStat_Context {
     static Hash GetFinalHash (const fs::path& path) {
