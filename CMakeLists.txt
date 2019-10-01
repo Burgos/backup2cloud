@@ -12,8 +12,15 @@ if(APPLE)
 else()
     set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 endif()
-set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+
+if (MSVC)
+else()
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -O2")
+endif()
 
 add_executable(backup2cloud src/backup2cloud.cpp)
+set_property(TARGET backup2cloud PROPERTY
+  MSVC_RUNTIME_LIBRARY "MultiThreaded")
+set_property(TARGET backup2cloud PROPERTY CXX_STANDARD 17)
+set_property(TARGET backup2cloud PROPERTY CXX_STANDARD_REQUIRED ON)
 target_link_libraries(backup2cloud ${CONAN_LIBS})

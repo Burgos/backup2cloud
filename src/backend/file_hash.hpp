@@ -32,14 +32,14 @@ std::ostream& operator<< (std::ostream& ostr, const FixedWidthVal<T,W> &fwv)
 template <typename It>
 std::string toHexStr(It begin, It end) {
    std::ostringstream result;
-   std::copy(begin, end, std::ostream_iterator<FixedWidthVal<unsigned int, 2>>(result, ""));
+   std::copy(begin, end, std::ostream_iterator<FixedWidthVal<uintmax_t, 2>>(result, ""));
    return result.str();
 }
 
 struct FileStat_Context {
     static Hash GetFinalHash (const fs::path& path) {
         fs::path fpath{path};
-        std::vector<long unsigned int> vec = 
+        std::vector<uintmax_t> vec =
             {fs::file_size(fpath),
              static_cast<long unsigned int>(fs::last_write_time(fpath).time_since_epoch().count())};
         return toHexStr(vec.begin(), vec.end());

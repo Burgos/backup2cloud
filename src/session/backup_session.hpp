@@ -14,13 +14,13 @@ namespace fs = std::filesystem;
 std::vector<FileWithHash> listFilesForBackup (const std::string& backup_name, const fs::path& root, SQLite::Database& db) {
     std::vector<FileWithHash> affected_files;
     auto files = calculateHashes(root);
-    SQLite::Statement query{db, "SELECT count(*) as num_matches FROM backup_files WHERE backup_name = :backup_name AND filename = :filename AND filehash = :filehash"};
-    query.bind(":backup_name", backup_name);
+    SQLite::Statement query{db, "SELECT count(*) as num_matches FROM backup_files WHERE backup_name = ? AND filename = ? AND filehash = ?"};
+    query.bind(1, backup_name);
     for (const auto& fh: files) {
         // query the db
         query.reset();
-        query.bind(":filename", fh.file_path);
-        query.bind(":filehash", fh.hash);
+        query.bind(2, fh.file_path);
+        query.bind(3, fh.hash);
         int num_matches = 0;
         if (query.executeStep() == true) {
             num_matches = query.getColumn("num_matches").getInt();
@@ -44,21 +44,21 @@ std::vector<FileWithHash> listFilesForBackup (const std::string& backup_name, co
 
 template <typename BackupFunction>
 void performBackup (const std::string& backup_name, std::vector<FileWithHash> filesToBackup, SQLite::Database& db, BackupFunction backup) {
-    SQLite::Statement query{db, "INSERT OR REPLACE INTO backup_files(backup_name, filename, filehash) VALUES (:backup_name, :filename, :filehash)"};
-    query.bind(":backup_name", backup_name);
+    SQLite::Statement query{db, "INSERT OR REPLACE INTO backup_files(backup_name, filename, filehash) VALUES (?, ?, ?)"};
+    query.bind(1, backup_name);
     for(const auto& fh: filesToBackup) {
         backup(fh.file_path);
         std::cout << fh.file_path << " " << fh.hash << std::endl;
         query.reset();
-        query.bind(":filename", fh.file_path);
-        query.bind(":filehash", fh.hash);
+        query.bind(2, fh.file_path);
+        query.bind(3, fh.hash);
         query.exec();
     }
 }
 
 bool checkPreviousBackup(const std::string& backup_name, SQLite::Database& db) {
-    SQLite::Statement query{db, "SELECT count(*) as num_matches FROM backup_files WHERE backup_name = :backup_name"};
-    query.bind(":backup_name", backup_name);
+    SQLite::Statement query{db, "SELECT count(*) as num_matches FROM backup_files WHERE backup_name = ?"};
+    query.bind(1, backup_name);
     int num_matches = 0;
     if (query.executeStep() == true) {
         num_matches = query.getColumn("num_matches").getInt();

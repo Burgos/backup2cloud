@@ -18,13 +18,14 @@ struct FileWithHash {
     Hash hash;
 };
 
-std::vector<FileWithHash> calculateHashes (fs::recursive_directory_iterator it) {
+std::vector<FileWithHash> calculateHashes (const fs::path& path) {
+	fs::recursive_directory_iterator it{ path };
     std::vector<FileWithHash> results;
     for (auto& p: it) {
         if (p.is_directory()) {
             continue;
         }
-        results.emplace_back(p.path());
+        results.push_back(FileWithHash{ p.path().string() });
     }
 
     return results;
@@ -32,7 +33,7 @@ std::vector<FileWithHash> calculateHashes (fs::recursive_directory_iterator it) 
 
 std::vector<FileWithHash> calculateHashes (std::string path) {
     fs::path file_path{path};
-    return calculateHashes(fs::recursive_directory_iterator{file_path});
+    return calculateHashes(fs::path{ path });
 }
 
 #endif // BACKUP2CLOUD_BACKEND_TRAVERSER_H
