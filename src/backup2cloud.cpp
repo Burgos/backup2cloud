@@ -3,6 +3,7 @@
 #include "backend/traverser.hpp"
 #include "session/backup_session.hpp"
 #include "session/do_backup.hpp"
+#include "config/configuration.hpp"
 
 namespace fs = std::filesystem;
 
@@ -18,12 +19,13 @@ int main(int argc, char** argv) {
     if (!db.tableExists("backup_files")) {
         initializeDatabase(db);
     }
-    std::string backup_name(argv[1]);
-    const bool isFull = !checkPreviousBackup(backup_name, db);
-    auto backup_dir = createBackupDirectory(fs::path{"/Users/burgos/backup/"}, backup_name, isFull);
-    for (int i = 2; i < argc; i++) {
-        auto files = listFilesForBackup(backup_name, argv[i], db);
-        performBackup(backup_name, files, db, [backup_dir, root = fs::path{argv[i]}](const std::string& path) {
+    auto backups = readConfig(argv[1]);
+
+    for (const auto& backup: backups) {
+        const bool isFull = !checkPreviousBackup(backup.backup_name, db);
+        auto backup_dir = createBackupDirectory(fs::path{"/Users/burgos/backup/"}, backup.backup_name, isFull);
+        auto files = listFilesForBackup(backup.backup_name, backup.root_path, db);
+        performBackup(backup.backup_name, files, db, [backup_dir, root = fs::path{backup.root_path}](const std::string& path) {
                 backup_file(backup_dir, root, fs::path{path});
         });
     }
