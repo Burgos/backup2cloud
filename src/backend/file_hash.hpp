@@ -32,27 +32,8 @@ struct FileStat_Context {
     }
 };
 
-template <typename Context>
-Hash getFileHash(const std::string& path) {
-    Context ctx;
-
-    std::string buffer(64*1024*1024, static_cast<char>(0));
-    std::ifstream input(path, std::ifstream::binary);
-    while (!input.eof()) {
-        input.read(buffer.data(), buffer.size());
-        assert(input.gcount() <= buffer.size());
-        ctx.Update({buffer.data(), static_cast<std::size_t>(input.gcount())});
-    }
-    return ctx.GetFinalHash();
-}
-
-template <>
-Hash getFileHash<FileStat_Context>(const std::string& path) {
+Hash getFileHash(const fs::path& path) {
     return FileStat_Context::GetFinalHash(path);
-}
-
-Hash getFileHash(const std::string& path) {
-    return getFileHash<FileStat_Context>(path);
 }
 
 #endif // BACKUP2CLOUD_BACKEND_FILE_HASH_H

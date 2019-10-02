@@ -47,7 +47,9 @@ void performBackup (const std::string& backup_name, std::vector<FileWithHash> fi
     SQLite::Statement query{db, "INSERT OR REPLACE INTO backup_files(backup_name, filename, filehash) VALUES (?, ?, ?)"};
     query.bind(1, backup_name);
     for(const auto& fh: filesToBackup) {
-        backup(fh.file_path);
+		if (!backup(fh.file_path)) {
+			continue; // keep trying for the failed files
+		}
         std::cout << fh.file_path << " " << fh.hash << std::endl;
         query.reset();
         query.bind(2, fh.file_path);

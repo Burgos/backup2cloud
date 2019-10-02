@@ -11,8 +11,8 @@ namespace fs = std::filesystem;
 /// Traverses the given directory recursively and calculates
 /// the hashes of all files found
 struct FileWithHash {
-    FileWithHash(const std::string& path):
-        file_path(path), hash(getFileHash(path)) {}
+    FileWithHash(const fs::path& path):
+        file_path(path.u8string()), hash(getFileHash(path)) {}
 
     std::string file_path;
     Hash hash;
@@ -25,7 +25,7 @@ std::vector<FileWithHash> calculateHashes (const fs::path& path) {
         if (p.is_directory()) {
             continue;
         }
-        results.push_back(FileWithHash{ p.path().string() });
+        results.push_back(FileWithHash{ p.path().wstring() });
     }
 
     return results;

@@ -14,11 +14,18 @@ fs::path createBackupDirectory(fs::path backup_path, std::string backup_name, bo
     return backup_path;
 }
 
-void backup_file(fs::path backup_directory, const fs::path& root, const fs::path& file_path) {
-    fs::path relative = fs::relative(file_path, root).remove_filename();
-    std::cout << "Backing up: " << file_path << "\n";
-    fs::path dest_dir = backup_directory / relative;
-    fs::create_directories(dest_dir);
-    dest_dir /= file_path.filename();
-    fs::copy_file(file_path, dest_dir);
+bool backup_file(fs::path backup_directory, const fs::path& root, const fs::path& file_path) {
+	try {
+		fs::path relative = fs::relative(file_path, root).remove_filename();
+		std::cout << "Backing up: " << file_path << "\n";
+		fs::path dest_dir = backup_directory / relative;
+		fs::create_directories(dest_dir);
+		dest_dir /= file_path.filename();
+		fs::copy_file(file_path, dest_dir);
+		return true;
+	}
+	catch (std::exception& ex) {
+		std::wcerr << "ERROR: Could not backup " << file_path.wstring() << " : " << ex.what() << std::endl;
+		return false;
+	}
 }

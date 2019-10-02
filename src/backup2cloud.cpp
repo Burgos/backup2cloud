@@ -19,14 +19,26 @@ int main(int argc, char** argv) {
     if (!db.tableExists("backup_files")) {
         initializeDatabase(db);
     }
-    auto backups = readConfig(argv[1]);
 
-    for (const auto& backup: backups) {
+	auto program_config = readProgramConfig(argv[1]);
+	if (!program_config.has_value()) {
+		std::cerr << "Could not read the program config.\n";
+		return 1;
+	}
+
+	auto backups = readBackupsConfig(argv[2]);
+	if (!backups.has_value()) {
+		std::cerr << "Could not read the backups config.\n";
+		return 1;
+	}
+
+    for (const auto& backup: *backups) {
+		std::cout <<  "Processing config: " << backup.backup_name << std::endl;
         const bool isFull = !checkPreviousBackup(backup.backup_name, db);
-        auto backup_dir = createBackupDirectory(fs::path{"/Users/burgos/backup/"}, backup.backup_name, isFull);
+        auto backup_dir = createBackupDirectory(fs::path{program_config->backup_path}, backup.backup_name, isFull);
         auto files = listFilesForBackup(backup.backup_name, backup.root_path, db);
         performBackup(backup.backup_name, files, db, [backup_dir, root = fs::path{backup.root_path}](const std::string& path) {
-                backup_file(backup_dir, root, fs::path{path});
+                return backup_file(backup_dir, root, fs::path{path});
         });
     }
     return 0;
