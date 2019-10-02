@@ -15,24 +15,10 @@
 namespace fs = std::filesystem;
 using Hash = std::string;
 
-// https://stackoverflow.com/a/25173025/133707
-template <typename T, int W>
-struct FixedWidthVal
-{
-    FixedWidthVal(T v_) : v(v_) {}
-    T v;
-};
-
-template <typename T, int W>
-std::ostream& operator<< (std::ostream& ostr, const FixedWidthVal<T,W> &fwv)
-{
-   return ostr << std::setw(W) << std::setfill('0') << std::hex << std::nouppercase << fwv.v;
-}
-
 template <typename It>
 std::string toHexStr(It begin, It end) {
    std::ostringstream result;
-   std::copy(begin, end, std::ostream_iterator<FixedWidthVal<uintmax_t, 2>>(result, ""));
+   std::copy(begin, end, std::ostream_iterator<uintmax_t>(result, ""));
    return result.str();
 }
 
