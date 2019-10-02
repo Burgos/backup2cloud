@@ -15,11 +15,6 @@ void initializeDatabase(SQLite::Database& db) {
 }
 
 int main(int argc, char** argv) {
-    SQLite::Database db("files.sql", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    if (!db.tableExists("backup_files")) {
-        initializeDatabase(db);
-    }
-
 	auto program_config = readProgramConfig(argv[1]);
 	if (!program_config.has_value()) {
 		std::cerr << "Could not read the program config.\n";
@@ -30,6 +25,11 @@ int main(int argc, char** argv) {
 	if (!backups.has_value()) {
 		std::cerr << "Could not read the backups config.\n";
 		return 1;
+	}
+
+	SQLite::Database db(program_config->db_path, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+	if (!db.tableExists("backup_files")) {
+		initializeDatabase(db);
 	}
 
     for (const auto& backup: *backups) {

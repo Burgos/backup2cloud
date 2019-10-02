@@ -5,6 +5,7 @@ using json = nlohmann::json;
 
 struct ProgramConfig {
 	std::string backup_path;
+	std::string db_path;
 };
 
 struct BackupConfig {
@@ -53,6 +54,7 @@ std::optional<ProgramConfig> readProgramConfig(const std::string& config_file) {
 		json j;
 		config_stream >> j;
 		j.at("backup_path").get_to(config.backup_path);
+		j.at("db_path").get_to(config.db_path);
 	}
 	catch (const std::exception& ex) {
 		std::cerr << "Could not parse the config: " << ex.what() << "\n";
