@@ -12,9 +12,9 @@ namespace fs = std::filesystem;
 /// the hashes of all files found
 struct FileWithHash {
     FileWithHash(const fs::path& path):
-        file_path(path.u8string()), hash(getFileHash(path)) {}
+        file_path(path), hash(getFileHash(path)) {}
 
-    std::string file_path;
+    fs::path file_path;
     Hash hash;
 };
 
