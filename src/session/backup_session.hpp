@@ -8,6 +8,21 @@
 
 namespace fs = std::filesystem;
 
+std::string normalizePath (const fs::path& root, const fs::path& path) {
+    static std::string generic_separator = "#_PATH_SEP_#";
+    // strip prefix and change the separator char
+    std::string normalized = path.u8string().substr(root.string().size());
+
+    const char sep = fs::path::preferred_separator;
+    std::size_t i = normalized.find(sep);
+    while (i != std::string::npos) {
+        normalized.replace(i, 1, generic_separator);
+        i = normalized.find(sep);
+    }
+
+    return normalized;
+}
+
 /// Defines a backup session for the directory.
 /// Goes over a directory and compares if the files are changed, and
 /// runs a scheduled work.
@@ -19,7 +34,7 @@ std::vector<FileWithHash> listFilesForBackup (const std::string& backup_name, co
     for (const auto& fh: files) {
         // query the db
         query.reset();
-        query.bind(2, fh.file_path);
+        query.bind(2, normalizePath(root, fh.file_path));
         query.bind(3, fh.hash);
         int num_matches = 0;
         if (query.executeStep() == true) {
@@ -43,7 +58,7 @@ std::vector<FileWithHash> listFilesForBackup (const std::string& backup_name, co
 }
 
 template <typename BackupFunction>
-void performBackup (const std::string& backup_name, std::vector<FileWithHash> filesToBackup, SQLite::Database& db, BackupFunction backup) {
+void performBackup (const fs::path& root, const std::string& backup_name, std::vector<FileWithHash> filesToBackup, SQLite::Database& db, BackupFunction backup) {
     SQLite::Statement query{db, "INSERT OR REPLACE INTO backup_files(backup_name, filename, filehash) VALUES (?, ?, ?)"};
     query.bind(1, backup_name);
     for(const auto& fh: filesToBackup) {
@@ -52,7 +67,7 @@ void performBackup (const std::string& backup_name, std::vector<FileWithHash> fi
 		}
         std::cout << fh.file_path << " " << fh.hash << std::endl;
         query.reset();
-        query.bind(2, fh.file_path);
+        query.bind(2, normalizePath(root, fh.file_path));
         query.bind(3, fh.hash);
         query.exec();
     }
