@@ -17,6 +17,8 @@
 #ifndef WIN32
 #include <sys/types.h>
 #include <sys/stat.h>
+#else
+	#include <windows.h>
 #endif
 
 namespace fs = std::filesystem;
@@ -26,23 +28,40 @@ using Hash = std::string;
 // Used to workaround the file_clock issue
 // in latest GCC (C++20 should bring to_sys_time which works
 // with this clock. Right now even date library can't accept it)
-time_t getFileTime (const fs::path& path) {
+unsigned long long getFileTime (const fs::path& path) {
 #ifdef WIN32
-    return std::chrono::duration_cast<std::chrono::seconds>(fs::last_write_time(fpath).time_since_epoch()).count();
+	HANDLE hFile;
+	FILETIME write_time;
+	std::string str_path = path.u8string();
+	hFile = CreateFile(str_path.c_str(), GENERIC_READ, FILE_SHARE_READ, 
+						nullptr, OPEN_EXISTING,  FILE_ATTRIBUTE_NORMAL,
+						nullptr);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		throw std::runtime_error("Could not open the file.");
+	}
+	if (GetFileTime(hFile, nullptr, nullptr, &write_time) == 0) {
+		throw std::runtime_error("Could not stat the file.");
+	}
+	CloseHandle(hFile);
+	ULARGE_INTEGER large_ticks;
+	large_ticks.LowPart = write_time.dwLowDateTime;
+	large_ticks.HighPart = write_time.dwHighDateTime;
+	unsigned long long ticks = *reinterpret_cast<unsigned long long*>(&large_ticks);
+    return ticks / 10000000 - 11644473600LL;
 #else
     struct stat s;
     std::string str_path = path.u8string();
     if (stat(str_path.c_str(), &s) == -1) {
         throw std::runtime_error("Could not stat the file.");
     }
-    return s.st_mtime;
+    return static_cast<unsigned long long>(s.st_mtime);
 #endif
 }
 
 template <typename It>
 std::string toHexStr(It begin, It end) {
    std::ostringstream result;
-   std::copy(begin, end, std::ostream_iterator<uintmax_t>(result, ""));
+   std::copy(begin, end, std::ostream_iterator<unsigned long long>(result, ""));
    return result.str();
 }
 
@@ -50,8 +69,8 @@ struct FileStat_Context {
     static Hash GetFinalHash (const fs::path& path) {
         fs::path fpath{path};
  
-        unsigned long int sec_since_epoch = getFileTime(path);
-        std::vector<uintmax_t> vec =
+        unsigned long long sec_since_epoch = getFileTime(path);
+        std::vector<unsigned long long> vec =
             {fs::file_size(fpath),
              sec_since_epoch};
         return toHexStr(vec.begin(), vec.end());

@@ -38,8 +38,8 @@ int main(int argc, char** argv) {
         auto backup_dir = createBackupDirectory(fs::path{program_config->backup_path}, backup.backup_name, isFull);
         auto files = listFilesForBackup(backup.backup_name, backup.root_path, db);
         auto root = fs::path{backup.root_path};
-        performBackup(root, backup.backup_name, files, db, [&backup_dir, &root](const std::string& path) {
-                return backup_file(backup_dir, root, fs::path{path});
+        performBackup(root, backup.backup_name, files, db, [&backup_dir, &root](const fs::path& path) {
+                return backup_file(backup_dir, root, path);
         });
     }
     return 0;

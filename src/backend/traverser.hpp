@@ -25,7 +25,12 @@ std::vector<FileWithHash> calculateHashes (const fs::path& path) {
         if (p.is_directory()) {
             continue;
         }
-        results.push_back(FileWithHash{ p.path().wstring() });
+		try {
+			results.push_back(FileWithHash{ p.path().wstring() }); \
+		}
+		catch (...) {
+			std::wcerr << "Could not calculate hash for " << p.path().wstring() << std::endl;
+		}
     }
 
     return results;
