@@ -58,7 +58,8 @@ std::vector<FileWithHash> listFilesForBackup (const std::string& backup_name, co
 }
 
 template <typename BackupFunction>
-void performBackup (const fs::path& root, const std::string& backup_name, std::vector<FileWithHash> filesToBackup, SQLite::Database& db, BackupFunction backup) {
+int performBackup (const fs::path& root, const std::string& backup_name, std::vector<FileWithHash> filesToBackup, SQLite::Database& db, BackupFunction backup) {
+    int num_backups = 0;
     SQLite::Statement query{db, "INSERT OR REPLACE INTO backup_files(backup_name, filename, filehash) VALUES (?, ?, ?)"};
     query.bind(1, backup_name);
     for(const auto& fh: filesToBackup) {
@@ -70,7 +71,9 @@ void performBackup (const fs::path& root, const std::string& backup_name, std::v
         query.bind(2, normalizePath(root, fh.file_path));
         query.bind(3, fh.hash);
         query.exec();
+        num_backups++;
     }
+    return num_backups;
 }
 
 bool checkPreviousBackup(const std::string& backup_name, SQLite::Database& db) {

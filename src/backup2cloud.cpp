@@ -38,9 +38,12 @@ int main(int argc, char** argv) {
         auto backup_dir = createBackupDirectory(fs::path{program_config->backup_path}, backup.backup_name, isFull);
         auto files = listFilesForBackup(backup.backup_name, backup.root_path, db);
         auto root = fs::path{backup.root_path};
-        performBackup(root, backup.backup_name, files, db, [&backup_dir, &root](const fs::path& path) {
+        auto num_backups = performBackup(root, backup.backup_name, files, db, [&backup_dir, &root](const fs::path& path) {
                 return backup_file(backup_dir, root, path);
         });
+        if (num_backups == 0) {
+            deleteEmptyDirectory(backup_dir);
+        }
     }
     return 0;
 } 
