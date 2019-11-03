@@ -4,6 +4,8 @@
 #include <date/date.h>
 #include <iostream>
 
+#include "pgp/encrypt.hpp"
+
 namespace fs = std::filesystem;
 
 fs::path createBackupDirectory(fs::path backup_path, std::string backup_name, bool is_full) {
@@ -27,6 +29,7 @@ bool backup_file(fs::path backup_directory, const fs::path& root, const fs::path
 		fs::create_directories(dest_dir);
 		dest_dir /= file_path.filename();
 		fs::copy_file(file_path, dest_dir);
+        encryptFile("", dest_dir.u8string());
 		return true;
 	}
 	catch (std::exception& ex) {

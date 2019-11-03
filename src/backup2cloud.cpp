@@ -3,6 +3,7 @@
 #include "backend/traverser.hpp"
 #include "session/backup_session.hpp"
 #include "session/do_backup.hpp"
+#include "pgp/encrypt.hpp"
 #include "config/configuration.hpp"
 
 namespace fs = std::filesystem;
